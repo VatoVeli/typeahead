@@ -1,0 +1,43 @@
+.userList {
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+  max-height: 400px;
+  border-radius: 10px;
+  scroll-behavior: smooth;
+  background-color: white;
+  scroll-snap-type: y mandatory;
+  box-shadow: 0.9px 4.4px 3.6px rgba(0, 0, 0, 0.024),
+    2.4px 12.3px 10px rgba(0, 0, 0, 0.035),
+    5.7px 29.5px 24.1px rgba(0, 0, 0, 0.046), 19px 98px 80px rgba(0, 0, 0, 0.07);
+}
+
+.userList li {
+  display: flex;
+  padding: 10px;
+  cursor: pointer;
+  align-items: center;
+  scroll-snap-align: end;
+}
+
+.userList li:hover {
+  background-color: #f9f9f9;
+}
+
+.userList li:active {
+  background-color: #efefef;
+}
+
+.userImage {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  margin-right: 20px;
+}
+
+.userList li span {
+  font-size: 18px;
+  font-weight: 500;
+  color: #323232;
+}

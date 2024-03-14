@@ -1,76 +1,63 @@
 "use client";
-import Image from "next/image";
+
 import style from "./page.module.css";
+import UserList from "../components/Users";
 import useGetUsers from "../hooks/useGetUsers";
 import { useState, useEffect, useRef } from "react";
-interface User {
-  html_url: string;
-  id: string;
-  login: string;
-  avatar_url: string;
-}
 
 function App() {
-  const userListRef = useRef<HTMLDivElement | null>(null);
+  const [page, setPage] = useState(1);
   const [searchText, setSearchText] = useState("");
-  const { users, setUsers, isLoading, error } = useGetUsers(searchText);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const userListRef = useRef<HTMLUListElement | null>(null);
+  const { users, setUsers, error } = useGetUsers(searchText, page);
 
   const handleClickOutside = (event: any) => {
     if (
-      userListRef.current &&
-      !userListRef.current.contains(event.target as Node)
+      wrapperRef.current &&
+      !wrapperRef.current.contains(event.target as Node)
     ) {
       setUsers([]);
     }
   };
 
+  const handleScroll = () => {
+    if (
+      userListRef.current &&
+      userListRef.current.clientHeight + userListRef.current.scrollTop + 1 >=
+        userListRef.current.scrollHeight
+    ) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
   useEffect(() => {
     document.addEventListener("click", handleClickOutside);
+    window.addEventListener("scroll", handleScroll, true);
 
     return () => {
+      window.removeEventListener("scroll", handleScroll, true);
       document.removeEventListener("click", handleClickOutside);
     };
   }, []);
 
   return (
     <div className={style.container}>
-      <h1>Github Typeahead</h1>
-      <div className={style.wrapper} ref={userListRef}>
+      <h1 className={style.title}>Github Typeahead</h1>
+      <div className={style.wrapper} ref={wrapperRef}>
         <input
           className={style.input}
           type="text"
           value={searchText}
-          onChange={(event) => setSearchText(event.target.value)}
+          onChange={(event) => {
+            setSearchText(event.target.value);
+            setUsers([]);
+          }}
           placeholder="Search for users..."
           spellCheck={false}
         />
         {error && <p className={style.errorText}>{error.message}</p>}
-        {isLoading ? (
-          <p className={style.loadingText}>Loading...</p>
-        ) : (
-          <ul className={style.userList}>
-            {users &&
-              users.map((user: User) => (
-                <a
-                  href={user.html_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  key={user.id}
-                >
-                  <li>
-                    <Image
-                      src={user.avatar_url}
-                      width={45}
-                      height={45}
-                      alt={user.login}
-                      className={style.userImage}
-                    />
-                    <span>{user.login}</span>
-                  </li>
-                </a>
-              ))}
-          </ul>
-        )}
+        <UserList userRef={userListRef} users={users} />
       </div>
     </div>
   );
