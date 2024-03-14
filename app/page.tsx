@@ -1,95 +1,79 @@
+"use client";
 import Image from "next/image";
-import styles from "./page.module.css";
+import style from "./page.module.css";
+import useGetUsers from "../hooks/useGetUsers";
+import { useState, useEffect, useRef } from "react";
+interface User {
+  html_url: string;
+  id: string;
+  login: string;
+  avatar_url: string;
+}
 
-export default function Home() {
+function App() {
+  const userListRef = useRef<HTMLDivElement | null>(null);
+  const [searchText, setSearchText] = useState("");
+  const { users, setUsers, isLoading, error } = useGetUsers(searchText);
+
+  const handleClickOutside = (event: any) => {
+    if (
+      userListRef.current &&
+      !userListRef.current.contains(event.target as Node)
+    ) {
+      setUsers([]);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("click", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+    <div className={style.container}>
+      <h1>Github Typeahead</h1>
+      <div className={style.wrapper} ref={userListRef}>
+        <input
+          className={style.input}
+          type="text"
+          value={searchText}
+          onChange={(event) => setSearchText(event.target.value)}
+          placeholder="Search for users..."
+          spellCheck={false}
         />
+        {error && <p className={style.errorText}>{error.message}</p>}
+        {isLoading ? (
+          <p className={style.loadingText}>Loading...</p>
+        ) : (
+          <ul className={style.userList}>
+            {users &&
+              users.map((user: User) => (
+                <a
+                  href={user.html_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  key={user.id}
+                >
+                  <li>
+                    <Image
+                      src={user.avatar_url}
+                      width={45}
+                      height={45}
+                      alt={user.login}
+                      className={style.userImage}
+                    />
+                    <span>{user.login}</span>
+                  </li>
+                </a>
+              ))}
+          </ul>
+        )}
       </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
 }
+
+export default App;
